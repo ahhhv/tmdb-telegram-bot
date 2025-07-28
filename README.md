@@ -1,44 +1,45 @@
-# 🎮 Telegram Bot for Searching TMDb
+# 🎮 Telegram Bot para Buscar Películas y Series (en Español)
 
-A lightweight Telegram bot that lets you search for movies and TV shows using the [TMDb](https://www.themoviedb.org/) API. It returns rich, interactive results including synopsis, genres, runtime, trailers (if available), and related recommendations — all in Spanish.
-
----
-
-## 🚀 Features
-
-* 🔐 Access control: only specific Telegram users are allowed to use the bot.
-* 🔎 Multi-type search (`movie`, `tv`) in Spanish (`es-ES`).
-* 📌 Interactive results using inline buttons.
-* 📝 Displays detailed metadata: title, release year, synopsis, duration, seasons/episodes (for series), status, rating, genres, and country of origin.
-* 🎥 YouTube trailer link (if available).
-* 🎞 Recommendations for related movies or series.
-* 🞼 Automatically sends the poster image (if available and short enough for Telegram captions).
+Un bot ligero para Telegram que te permite buscar películas y series usando la [API de TMDb](https://www.themoviedb.org/). Devuelve resultados interactivos y ricos en contenido, completamente en **español**, incluyendo sinopsis, géneros, duración, tráilers (si están disponibles), y recomendaciones relacionadas.
 
 ---
 
-## ⚙️ Configuration via `.env`
+## 🚀 Funcionalidades
 
-You can customize the bot's behavior and credentials using environment variables. Create a `.env` file based on the included `.env.example`:
+* 🔐 Control de acceso: solo usuarios de Telegram autorizados pueden usar el bot.
+* 🔎 Búsqueda multi-tipo (`movie`, `tv`) en español (`es-ES`).
+* 📌 Resultados interactivos mediante botones inline.
+* 📝 Muestra metadatos detallados: título, año de estreno, sinopsis, duración, temporadas/episodios (para series), estado, puntuación, géneros y país de origen.
+* 🎥 Enlace al tráiler en YouTube (si está disponible).
+* 🎞 Recomendaciones de películas o series similares.
+* 🖼 Envío automático del póster (si está disponible y cabe en la descripción de Telegram).
+
+> 📌 **Nota:** Todos los resultados se devuelven en español (idioma `es-ES`). Se podría hacer configurable en futuras versiones.
+
+---
+
+## ⚙️ Configuración vía `.env`
+
+Puedes personalizar el comportamiento del bot y sus credenciales mediante variables de entorno. Crea un archivo `.env` basado en el ejemplo:
 
 ```dotenv
 TELEGRAM_TOKEN=your_bot_token_here
 TMDB_API_KEY=your_tmdb_api_key_here
 ALLOWED_USERS=username1,username2
 ```
+⚠️ No subas tu .env real. Usa .env.example para compartir la estructura de configuración.
 
-> 🔐 Never commit your actual `.env`. Use `.env.example` for sharing configuration structure.
+--- 
 
----
+🐳 Docker
 
-## 🐳 Docker
+Este proyecto está disponible como imagen Docker precompilada en Docker Hub:
 
-This project is available as a prebuilt Docker image on Docker Hub:
+📦 Docker Hub: wandish/tmdb-telegram-bot
 
-**📦 Docker Hub:** [`wandish/tmdb-telegram-bot`](https://hub.docker.com/r/wandish/tmdb-telegram-bot)
+## Ejemplo de docker-compose.yml
 
-### Example `docker-compose.yml`
-
-```yaml
+```
 version: "3.8"
 
 services:
@@ -48,4 +49,3 @@ services:
     restart: unless-stopped
     env_file:
       - ./tmdb-telegram-bot_data/.env
-```
