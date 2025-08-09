@@ -130,7 +130,8 @@ async def mostrar_detalle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         duraciones = detalle.get("episode_run_time", [])
         duracion_media = f"{sum(duraciones)//len(duraciones)} min" if duraciones else "N/D"
         texto_extra += f"\n📅 Temporadas: {temporadas}\n🎮 Episodios: {episodios}\n📡 Estado: {estado}\n⏱ Duración media por episodio: {duracion_media}"
-        if media_type == "tv":
+
+        # ✅ Aquí está bien indentado
         botones_extra = [
             [InlineKeyboardButton("📈 Ver mejores episodios", callback_data=f"mejores_{movie_id}")]
         ]
