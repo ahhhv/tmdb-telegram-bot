@@ -16,6 +16,7 @@ load_dotenv()
 
 API_KEY = os.environ.get("TMDB_API_KEY")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+MIN_EPISODE_SCORE = float(os.environ.get("MIN_EPISODE_SCORE", 8.5))
 
 # Solo usuarios permitidos
 USUARIOS_PERMITIDOS = set(os.environ.get("ALLOWED_USERS", "").split(","))
@@ -65,6 +66,41 @@ async def buscar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Selecciona el resultado correcto:", reply_markup=reply_markup)
 
 @solo_autorizados
+async def mejores_episodios(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    movie_id = query.data.split("_")[1]
+    detalle = context.user_data['resultados'].get(movie_id)
+
+    if not detalle or detalle.get("media_type") != "tv":
+        await query.edit_message_text("⚠️ No se pudo encontrar la serie.")
+        return
+
+    # Obtener número de temporadas
+    url = f"https://api.themoviedb.org/3/tv/{movie_id}?api_key={API_KEY}&language=es-ES"
+    data = requests.get(url).json()
+    num_temporadas = data.get("number_of_seasons", 0)
+
+    mejores = []
+    for temporada in range(1, num_temporadas + 1):
+        temporada_url = f"https://api.themoviedb.org/3/tv/{movie_id}/season/{temporada}?api_key={API_KEY}&language=es-ES"
+        resp = requests.get(temporada_url).json()
+        for episodio in resp.get("episodes", []):
+            score = episodio.get("vote_average", 0)
+            if score >= MIN_EPISODE_SCORE:
+                titulo = episodio.get("name")
+                episodio_num = episodio.get("episode_number")
+                imdb_rating = score  # Temporal, hasta conectar con IMDb real
+                mejores.append(f"{detalle['name']} {temporada}x{episodio_num:02} - {imdb_rating:.1f} TMDb")
+
+    if not mejores:
+        await query.message.reply_text("❌ No se encontraron episodios que superen el umbral de puntuación.")
+    else:
+        await query.message.reply_text("⭐️ *Episodios destacados:*\n\n" + "\n".join(mejores), parse_mode="Markdown")
+
+
+@solo_autorizados
 async def mostrar_detalle(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -94,6 +130,12 @@ async def mostrar_detalle(update: Update, context: ContextTypes.DEFAULT_TYPE):
         duraciones = detalle.get("episode_run_time", [])
         duracion_media = f"{sum(duraciones)//len(duraciones)} min" if duraciones else "N/D"
         texto_extra += f"\n📅 Temporadas: {temporadas}\n🎮 Episodios: {episodios}\n📡 Estado: {estado}\n⏱ Duración media por episodio: {duracion_media}"
+        if media_type == "tv":
+        botones_extra = [
+            [InlineKeyboardButton("📈 Ver mejores episodios", callback_data=f"mejores_{movie_id}")]
+        ]
+        extra_markup = InlineKeyboardMarkup(botones_extra)
+        await query.message.reply_text("¿Quieres ver los episodios mejor valorados?", reply_markup=extra_markup)
 
     puntuacion = detalle.get("vote_average")
     votos = detalle.get("vote_count")
@@ -178,6 +220,7 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, buscar))
     app.add_handler(CallbackQueryHandler(mostrar_detalle))
+    app.add_handler(CallbackQueryHandler(mejores_episodios, pattern=r"^mejores_\d+$"))
     app.add_error_handler(error_handler)
 
     app.run_polling()
